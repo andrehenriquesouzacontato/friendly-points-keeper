@@ -6,7 +6,7 @@ interface AppContextType {
   compras: Compra[];
   user: User | null;
   resgates: Resgate[];
-  addCliente: (cliente: Omit<Cliente, 'id' | 'pontos' | 'dataRegistro'>) => void;
+  addCliente: (cliente: Omit<Cliente, 'id' | 'pontos' | 'dataRegistro' | 'senha'>) => void;
   getClienteByCpf: (cpf: string) => Cliente | undefined;
   registrarCompra: (clienteId: string, valor: number) => void;
   resgatarPontos: (clienteId: string, pontos: number, descricao: string) => boolean;
@@ -61,7 +61,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [user]);
   
-  const addCliente = (clienteData: Omit<Cliente, 'id' | 'pontos' | 'dataRegistro'>) => {
+  const addCliente = (clienteData: Omit<Cliente, 'id' | 'pontos' | 'dataRegistro' | 'senha'>) => {
     const newCliente: Cliente = {
       ...clienteData,
       id: Date.now().toString(),

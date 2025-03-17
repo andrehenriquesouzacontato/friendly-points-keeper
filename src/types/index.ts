@@ -5,7 +5,7 @@ export interface Cliente {
   cpf: string;
   email: string | null | "";
   telefone: string;
-  senha: string;
+  senha?: string;
   pontos: number;
   dataRegistro: string;
 }

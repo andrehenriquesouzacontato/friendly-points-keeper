@@ -15,7 +15,6 @@ const CadastroCliente: React.FC = () => {
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [senha, setSenha] = useState('');
   
   const { addCliente, user, getClienteByCpf } = useApp();
   const navigate = useNavigate();
@@ -36,13 +35,12 @@ const CadastroCliente: React.FC = () => {
       return;
     }
     
-    // Adicionar o cliente
+    // Adicionar o cliente (sem senha)
     addCliente({
       nome,
       cpf,
       email,
-      telefone,
-      senha
+      telefone
     });
     
     toast.success('Cliente cadastrado com sucesso!');
@@ -52,7 +50,6 @@ const CadastroCliente: React.FC = () => {
     setCpf('');
     setEmail('');
     setTelefone('');
-    setSenha('');
     
     // Voltar para o dashboard
     navigate('/admin');
@@ -121,17 +118,6 @@ const CadastroCliente: React.FC = () => {
                   placeholder="(00) 00000-0000"
                   value={telefone}
                   onChange={(e) => setTelefone(e.target.value)}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="senha">Senha</Label>
-                <Input
-                  id="senha"
-                  type="password"
-                  placeholder="Senha para acesso do cliente"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
                 />
               </div>
               
