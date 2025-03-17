@@ -1,14 +1,15 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Cliente, Compra, User } from '../types';
+import { Cliente, Compra, User, Resgate } from '../types';
 
 interface AppContextType {
   clientes: Cliente[];
   compras: Compra[];
   user: User | null;
+  resgates: Resgate[];
   addCliente: (cliente: Omit<Cliente, 'id' | 'pontos' | 'dataRegistro'>) => void;
   getClienteByCpf: (cpf: string) => Cliente | undefined;
   registrarCompra: (clienteId: string, valor: number) => void;
+  resgatarPontos: (clienteId: string, pontos: number, descricao: string) => boolean;
   login: (username: string, password: string, tipo: 'admin' | 'cliente') => boolean;
   logout: () => void;
   clienteAtual: Cliente | null;
@@ -28,6 +29,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return savedCompras ? JSON.parse(savedCompras) : [];
   });
   
+  const [resgates, setResgates] = useState<Resgate[]>(() => {
+    const savedResgates = localStorage.getItem('resgates');
+    return savedResgates ? JSON.parse(savedResgates) : [];
+  });
+  
   const [user, setUser] = useState<User | null>(() => {
     const savedUser = localStorage.getItem('currentUser');
     return savedUser ? JSON.parse(savedUser) : null;
@@ -42,6 +48,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem('compras', JSON.stringify(compras));
   }, [compras]);
+  
+  useEffect(() => {
+    localStorage.setItem('resgates', JSON.stringify(resgates));
+  }, [resgates]);
   
   useEffect(() => {
     if (user) {
@@ -67,7 +77,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const registrarCompra = (clienteId: string, valor: number) => {
-    // Arredondar para baixo para não dar pontos parciais
     const pontosGanhos = Math.floor(valor);
     
     const novaCompra: Compra = {
@@ -80,7 +89,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     
     setCompras([...compras, novaCompra]);
     
-    // Atualizar pontos do cliente
     setClientes(prevClientes => 
       prevClientes.map(cliente => 
         cliente.id === clienteId 
@@ -90,6 +98,38 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
   
+  const resgatarPontos = (clienteId: string, pontos: number, descricao: string) => {
+    const clienteIndex = clientes.findIndex(c => c.id === clienteId);
+    if (clienteIndex === -1) {
+      return false;
+    }
+    
+    const cliente = clientes[clienteIndex];
+    if (cliente.pontos < pontos) {
+      return false;
+    }
+    
+    const novoResgate: Resgate = {
+      id: Date.now().toString(),
+      clienteId,
+      pontos,
+      descricao,
+      data: new Date().toISOString()
+    };
+    
+    setResgates([...resgates, novoResgate]);
+    
+    setClientes(prevClientes => 
+      prevClientes.map(c => 
+        c.id === clienteId 
+          ? { ...c, pontos: c.pontos - pontos } 
+          : c
+      )
+    );
+    
+    return true;
+  };
+  
   const login = (username: string, password: string, tipo: 'admin' | 'cliente') => {
     if (tipo === 'admin') {
       if (username === 'Admin' && password === '1234') {
@@ -97,7 +137,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return true;
       }
     } else {
-      // Login de cliente com CPF
       const cliente = clientes.find(c => c.cpf === username && c.senha === password);
       if (cliente) {
         setUser({ 
@@ -120,10 +159,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider value={{
       clientes,
       compras,
+      resgates,
       user,
       addCliente,
       getClienteByCpf,
       registrarCompra,
+      resgatarPontos,
       login,
       logout,
       clienteAtual,

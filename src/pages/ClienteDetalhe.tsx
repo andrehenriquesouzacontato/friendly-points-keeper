@@ -7,14 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Calendar, DollarSign, Award } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { ArrowLeft, Calendar, DollarSign, Award, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Slider } from '@/components/ui/slider';
 
 const ClienteDetalhe: React.FC = () => {
   const [valor, setValor] = useState('');
+  const [pontosResgatar, setPontosResgatar] = useState<number>(0);
+  const [descricaoResgate, setDescricaoResgate] = useState('');
+  const [mostrarResgate, setMostrarResgate] = useState(false);
   
-  const { clienteAtual, user, compras, registrarCompra } = useApp();
+  const { clienteAtual, user, compras, resgates, registrarCompra, resgatarPontos } = useApp();
   const navigate = useNavigate();
   
   // Redirecionar se não estiver logado como admin ou não tiver cliente selecionado
@@ -28,6 +33,11 @@ const ClienteDetalhe: React.FC = () => {
   const comprasCliente = compras.filter(compra => 
     compra.clienteId === clienteAtual?.id
   ).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  
+  // Filtrar resgates do cliente
+  const resgatesCliente = resgates ? resgates.filter(resgate => 
+    resgate.clienteId === clienteAtual?.id
+  ).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()) : [];
   
   const handleRegistrarCompra = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +57,36 @@ const ClienteDetalhe: React.FC = () => {
     registrarCompra(clienteAtual.id, valorNumerico);
     toast.success(`Compra registrada! ${Math.floor(valorNumerico)} pontos adicionados.`);
     setValor('');
+  };
+  
+  const handleResgatarPontos = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!clienteAtual) {
+      toast.error('Cliente não selecionado');
+      return;
+    }
+    
+    if (!pontosResgatar || pontosResgatar <= 0) {
+      toast.error('Selecione a quantidade de pontos para resgatar');
+      return;
+    }
+    
+    if (!descricaoResgate.trim()) {
+      toast.error('Informe uma descrição para o resgate');
+      return;
+    }
+    
+    const sucesso = resgatarPontos(clienteAtual.id, pontosResgatar, descricaoResgate);
+    
+    if (sucesso) {
+      toast.success(`${pontosResgatar} pontos resgatados com sucesso!`);
+      setPontosResgatar(0);
+      setDescricaoResgate('');
+      setMostrarResgate(false);
+    } else {
+      toast.error('Não foi possível resgatar os pontos. Verifique se o cliente possui saldo suficiente.');
+    }
   };
   
   if (!clienteAtual) {
@@ -84,11 +124,11 @@ const ClienteDetalhe: React.FC = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">E-mail</p>
-                  <p>{clienteAtual.email}</p>
+                  <p>{clienteAtual.email || "-"}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-500">Telefone</p>
-                  <p>{clienteAtual.telefone}</p>
+                  <p>{clienteAtual.telefone || "-"}</p>
                 </div>
                 <div className="pt-2">
                   <div className="flex items-center gap-2 bg-loyalty-green rounded-md p-3">
@@ -131,26 +171,109 @@ const ClienteDetalhe: React.FC = () => {
                 </div>
               </form>
               
-              <div className="mt-6">
-                <h3 className="text-md font-semibold mb-3">Histórico de Compras</h3>
-                {comprasCliente.length > 0 ? (
-                  <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-                    {comprasCliente.map((compra) => (
-                      <div key={compra.id} className="flex justify-between p-3 bg-gray-50 rounded-md border border-gray-100">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gray-500" />
-                          <span>{format(new Date(compra.data), 'dd/MM/yyyy')}</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <span className="text-gray-600">R$ {compra.valor.toFixed(2)}</span>
-                          <span className="text-green-600 font-medium">+{compra.pontosGanhos} pts</span>
-                        </div>
+              <div className="mt-6 flex justify-between items-center">
+                <h3 className="text-md font-semibold">Gerenciar Pontos</h3>
+                <Button 
+                  variant="outline" 
+                  className="bg-loyalty-green/10 text-green-900 hover:bg-loyalty-green/20 border-loyalty-green/30"
+                  onClick={() => setMostrarResgate(!mostrarResgate)}
+                >
+                  <Gift className="h-4 w-4 mr-2" />
+                  {mostrarResgate ? 'Cancelar' : 'Resgatar Pontos'}
+                </Button>
+              </div>
+              
+              {mostrarResgate && (
+                <div className="mt-4 p-4 border border-loyalty-green/30 rounded-md bg-loyalty-green/5">
+                  <form onSubmit={handleResgatarPontos} className="space-y-4">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <Label htmlFor="pontos">Pontos a Resgatar</Label>
+                        <span className="text-green-700 font-medium">{pontosResgatar} pontos</span>
                       </div>
-                    ))}
+                      <Slider
+                        id="pontos"
+                        value={[pontosResgatar]}
+                        max={clienteAtual.pontos}
+                        step={1}
+                        onValueChange={(value) => setPontosResgatar(value[0])}
+                        className="py-4"
+                      />
+                      <div className="text-xs text-gray-500 flex justify-between">
+                        <span>0</span>
+                        <span>Máximo: {clienteAtual.pontos} pontos</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="descricao">Descrição do Resgate</Label>
+                      <Input
+                        id="descricao"
+                        placeholder="Ex: Vale desconto, brinde, etc."
+                        value={descricaoResgate}
+                        onChange={(e) => setDescricaoResgate(e.target.value)}
+                        required
+                      />
+                    </div>
+                    
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-loyalty-green hover:bg-green-400 text-green-900"
+                      disabled={pontosResgatar <= 0 || pontosResgatar > clienteAtual.pontos}
+                    >
+                      <Gift className="h-4 w-4 mr-2" />
+                      Confirmar Resgate
+                    </Button>
+                  </form>
+                </div>
+              )}
+              
+              <Separator className="my-6" />
+              
+              <div className="mt-4">
+                <h3 className="text-md font-semibold mb-3">Histórico</h3>
+                
+                {comprasCliente.length > 0 || resgatesCliente.length > 0 ? (
+                  <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
+                    {/* Combinar e ordenar compras e resgates */}
+                    {[...comprasCliente, ...resgatesCliente]
+                      .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+                      .map((item) => {
+                        if ('valor' in item) {
+                          // É uma compra
+                          return (
+                            <div key={item.id} className="flex justify-between p-3 bg-gray-50 rounded-md border border-gray-100">
+                              <div className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4 text-gray-500" />
+                                <span>{format(new Date(item.data), 'dd/MM/yyyy')}</span>
+                                <span className="text-gray-500">Compra</span>
+                              </div>
+                              <div className="flex items-center gap-4">
+                                <span className="text-gray-600">R$ {item.valor.toFixed(2)}</span>
+                                <span className="text-green-600 font-medium">+{item.pontosGanhos} pts</span>
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          // É um resgate
+                          return (
+                            <div key={item.id} className="flex justify-between p-3 bg-pink-50 rounded-md border border-pink-100">
+                              <div className="flex items-center gap-2">
+                                <Gift className="h-4 w-4 text-pink-500" />
+                                <span>{format(new Date(item.data), 'dd/MM/yyyy')}</span>
+                                <span className="text-pink-500">Resgate: {item.descricao}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <span className="text-pink-600 font-medium">-{item.pontos} pts</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                      })}
                   </div>
                 ) : (
                   <div className="text-center py-6 text-gray-500">
-                    Nenhuma compra registrada ainda
+                    Nenhum histórico de atividade
                   </div>
                 )}
               </div>

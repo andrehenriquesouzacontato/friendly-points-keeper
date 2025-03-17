@@ -18,6 +18,14 @@ export interface Compra {
   data: string;
 }
 
+export interface Resgate {
+  id: string;
+  clienteId: string;
+  pontos: number;
+  descricao: string;
+  data: string;
+}
+
 export interface User {
   username: string;
   tipo: 'admin' | 'cliente';
