@@ -50,42 +50,11 @@ const Login: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          <Tabs defaultValue="admin" className="w-full">
+          <Tabs defaultValue="cliente" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="admin">Administrador</TabsTrigger>
               <TabsTrigger value="cliente">Cliente</TabsTrigger>
+              <TabsTrigger value="admin">Administrador</TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="admin">
-              <form onSubmit={handleAdminLogin} className="space-y-4 mt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="admin-username">Usuário</Label>
-                  <Input
-                    id="admin-username"
-                    placeholder="Digite seu usuário"
-                    value={adminUsername}
-                    onChange={(e) => setAdminUsername(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="admin-password">Senha</Label>
-                  <Input
-                    id="admin-password"
-                    type="password"
-                    placeholder="Digite sua senha"
-                    value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    required
-                  />
-                </div>
-                
-                <Button type="submit" className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900">
-                  Entrar como Administrador
-                </Button>
-              </form>
-            </TabsContent>
             
             <TabsContent value="cliente">
               <form onSubmit={handleClienteLogin} className="space-y-4 mt-4">
@@ -114,6 +83,37 @@ const Login: React.FC = () => {
                 
                 <Button type="submit" className="w-full bg-loyalty-green hover:bg-green-300 text-green-900">
                   Entrar como Cliente
+                </Button>
+              </form>
+            </TabsContent>
+            
+            <TabsContent value="admin">
+              <form onSubmit={handleAdminLogin} className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="admin-username">Usuário</Label>
+                  <Input
+                    id="admin-username"
+                    placeholder="Digite seu usuário"
+                    value={adminUsername}
+                    onChange={(e) => setAdminUsername(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="admin-password">Senha</Label>
+                  <Input
+                    id="admin-password"
+                    type="password"
+                    placeholder="Digite sua senha"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                
+                <Button type="submit" className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900">
+                  Entrar como Administrador
                 </Button>
               </form>
             </TabsContent>

@@ -82,7 +82,7 @@ const CadastroCliente: React.FC = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="nome">Nome Completo</Label>
+                <Label htmlFor="nome">Nome Completo <span className="text-red-500">*</span></Label>
                 <Input
                   id="nome"
                   placeholder="Nome do cliente"
@@ -93,7 +93,7 @@ const CadastroCliente: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="cpf">CPF</Label>
+                <Label htmlFor="cpf">CPF <span className="text-red-500">*</span></Label>
                 <Input
                   id="cpf"
                   placeholder="000.000.000-00"
@@ -111,7 +111,6 @@ const CadastroCliente: React.FC = () => {
                   placeholder="email@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                 />
               </div>
               
@@ -122,7 +121,6 @@ const CadastroCliente: React.FC = () => {
                   placeholder="(00) 00000-0000"
                   value={telefone}
                   onChange={(e) => setTelefone(e.target.value)}
-                  required
                 />
               </div>
               
@@ -134,7 +132,6 @@ const CadastroCliente: React.FC = () => {
                   placeholder="Senha para acesso do cliente"
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
-                  required
                 />
               </div>
               
