@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import Header from '../components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Award, ShoppingBag, Calendar } from 'lucide-react';
+import { Award, ShoppingBag, Calendar, Gift } from 'lucide-react';
 import { format } from 'date-fns';
 
 const ClienteDashboard: React.FC = () => {
-  const { user, clientes, compras } = useApp();
+  const { user, clientes, compras, resgates } = useApp();
   const navigate = useNavigate();
   
   // Redirecionar se não estiver logado como cliente
@@ -24,6 +24,11 @@ const ClienteDashboard: React.FC = () => {
   // Filtrar compras do cliente
   const comprasCliente = compras
     .filter(compra => compra.clienteId === user?.clienteId)
+    .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  
+  // Filtrar resgates do cliente
+  const resgatesCliente = resgates
+    .filter(resgate => resgate.clienteId === user?.clienteId)
     .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   
   if (!cliente) {
@@ -68,46 +73,75 @@ const ClienteDashboard: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">E-mail</p>
-                <p>{cliente.email}</p>
+                <p>{cliente.email || "-"}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-500">Telefone</p>
-                <p>{cliente.telefone}</p>
+                <p>{cliente.telefone || "-"}</p>
               </div>
             </CardContent>
           </Card>
         </div>
         
-        <h3 className="text-xl font-semibold mb-4">Histórico de Compras</h3>
+        <h3 className="text-xl font-semibold mb-4">Histórico de Atividades</h3>
         <Card>
           <CardContent className="py-6">
-            {comprasCliente.length > 0 ? (
+            {comprasCliente.length > 0 || resgatesCliente.length > 0 ? (
               <div className="space-y-4">
-                {comprasCliente.map((compra) => (
-                  <div key={compra.id} className="flex items-center justify-between p-3 border-b border-gray-100 last:border-0">
-                    <div className="flex items-center gap-3">
-                      <div className="bg-loyalty-green p-2 rounded-full">
-                        <ShoppingBag className="h-5 w-5 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium">Compra</p>
-                        <div className="flex items-center text-sm text-gray-500">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          <span>{format(new Date(compra.data), 'dd/MM/yyyy')}</span>
+                {/* Combinar e ordenar compras e resgates */}
+                {[...comprasCliente, ...resgatesCliente]
+                  .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
+                  .map((item) => {
+                    if ('valor' in item) {
+                      // É uma compra
+                      return (
+                        <div key={item.id} className="flex items-center justify-between p-3 border-b border-gray-100 last:border-0">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-loyalty-green p-2 rounded-full">
+                              <ShoppingBag className="h-5 w-5 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Compra</p>
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                <span>{format(new Date(item.data), 'dd/MM/yyyy')}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-gray-600">R$ {item.valor.toFixed(2)}</p>
+                            <p className="text-sm text-green-600 font-medium">+{item.pontosGanhos} pontos</p>
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-gray-600">R$ {compra.valor.toFixed(2)}</p>
-                      <p className="text-sm text-green-600 font-medium">+{compra.pontosGanhos} pontos</p>
-                    </div>
-                  </div>
-                ))}
+                      );
+                    } else {
+                      // É um resgate
+                      return (
+                        <div key={item.id} className="flex items-center justify-between p-3 border-b border-gray-100 last:border-0">
+                          <div className="flex items-center gap-3">
+                            <div className="bg-loyalty-pink p-2 rounded-full">
+                              <Gift className="h-5 w-5 text-pink-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium">Resgate: {item.descricao}</p>
+                              <div className="flex items-center text-sm text-gray-500">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                <span>{format(new Date(item.data), 'dd/MM/yyyy')}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-sm text-pink-600 font-medium">-{item.pontos} pontos</p>
+                          </div>
+                        </div>
+                      );
+                    }
+                  })}
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <ShoppingBag className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                <p>Você ainda não possui compras registradas</p>
+                <p>Você ainda não possui atividades registradas</p>
               </div>
             )}
           </CardContent>

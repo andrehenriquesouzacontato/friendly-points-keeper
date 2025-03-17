@@ -3,7 +3,7 @@ export interface Cliente {
   id: string;
   nome: string;
   cpf: string;
-  email: string;
+  email: string | null | "";
   telefone: string;
   senha: string;
   pontos: number;
