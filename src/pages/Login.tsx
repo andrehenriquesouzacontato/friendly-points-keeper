@@ -1,21 +1,16 @@
 
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, UserIcon, KeyIcon, ShieldIcon } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Eye, EyeOff, UserIcon, ShieldIcon } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login: React.FC = () => {
-  // Campos para login de administrador
-  const [adminUsername, setAdminUsername] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  
   // Campos para login de cliente
   const [clienteCpf, setClienteCpf] = useState('');
   const [clienteSenha, setClienteSenha] = useState('');
@@ -33,17 +28,6 @@ const Login: React.FC = () => {
   
   const { login, clientes, getClienteByCpf } = useApp();
   const navigate = useNavigate();
-  
-  const handleAdminLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (login(adminUsername, adminPassword, 'admin')) {
-      toast.success('Login realizado com sucesso!');
-      navigate('/admin');
-    } else {
-      toast.error('Usuário ou senha incorretos');
-    }
-  };
   
   const handleClienteLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,113 +169,69 @@ const Login: React.FC = () => {
               </form>
             </div>
           ) : (
-            <Tabs defaultValue="cliente" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="cliente" className="flex items-center gap-2">
-                  <UserIcon className="h-4 w-4" />
-                  Cliente
-                </TabsTrigger>
-                <TabsTrigger value="admin" className="flex items-center gap-2">
-                  <ShieldIcon className="h-4 w-4" />
-                  Administrador
-                </TabsTrigger>
-              </TabsList>
+            // Formulário de login do cliente
+            <div className="space-y-4 mt-2">
+              <div className="flex items-center justify-center mb-4">
+                <UserIcon className="text-loyalty-green mr-2" size={24} />
+                <h2 className="text-xl font-semibold">Acesso do Cliente</h2>
+              </div>
               
-              <TabsContent value="cliente">
-                <div className="space-y-4 mt-2">
-                  <form onSubmit={handleClienteLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="cliente-cpf">CPF</Label>
-                      <Input
-                        id="cliente-cpf"
-                        placeholder="Digite seu CPF (apenas números)"
-                        value={clienteCpf}
-                        onChange={(e) => setClienteCpf(e.target.value)}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="cliente-senha">Senha</Label>
-                      <div className="relative">
-                        <Input
-                          id="cliente-senha"
-                          type={mostrarSenha ? "text" : "password"}
-                          placeholder="Digite sua senha"
-                          value={clienteSenha}
-                          onChange={(e) => setClienteSenha(e.target.value)}
-                          required
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                          onClick={() => setMostrarSenha(!mostrarSenha)}
-                        >
-                          {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <Button type="submit" className="w-full bg-loyalty-green hover:bg-green-300 text-green-900">
-                      Entrar como Cliente
-                    </Button>
-                  </form>
-                  
-                  <Alert className="bg-gray-50 border-gray-200">
-                    <AlertDescription className="text-sm">
-                      Primeira vez acessando? Ao informar seu CPF, você será redirecionado para criar uma senha.
-                    </AlertDescription>
-                  </Alert>
+              <form onSubmit={handleClienteLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cliente-cpf">CPF</Label>
+                  <Input
+                    id="cliente-cpf"
+                    placeholder="Digite seu CPF (apenas números)"
+                    value={clienteCpf}
+                    onChange={(e) => setClienteCpf(e.target.value)}
+                    required
+                  />
                 </div>
-              </TabsContent>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="cliente-senha">Senha</Label>
+                  <div className="relative">
+                    <Input
+                      id="cliente-senha"
+                      type={mostrarSenha ? "text" : "password"}
+                      placeholder="Digite sua senha"
+                      value={clienteSenha}
+                      onChange={(e) => setClienteSenha(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                      onClick={() => setMostrarSenha(!mostrarSenha)}
+                    >
+                      {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+                
+                <Button type="submit" className="w-full bg-loyalty-green hover:bg-green-300 text-green-900">
+                  Entrar como Cliente
+                </Button>
+              </form>
               
-              <TabsContent value="admin">
-                <div className="space-y-4 mt-2">
-                  <form onSubmit={handleAdminLogin} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="admin-username">Usuário</Label>
-                      <Input
-                        id="admin-username"
-                        placeholder="Digite o usuário administrador"
-                        value={adminUsername}
-                        onChange={(e) => setAdminUsername(e.target.value)}
-                        required
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="admin-password">Senha</Label>
-                      <div className="relative">
-                        <Input
-                          id="admin-password"
-                          type={mostrarSenha ? "text" : "password"}
-                          placeholder="Digite a senha"
-                          value={adminPassword}
-                          onChange={(e) => setAdminPassword(e.target.value)}
-                          required
-                        />
-                        <button
-                          type="button"
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                          onClick={() => setMostrarSenha(!mostrarSenha)}
-                        >
-                          {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
-                        </button>
-                      </div>
-                    </div>
-                    
-                    <Button type="submit" className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900">
-                      <KeyIcon className="mr-2 h-4 w-4" />
-                      Acesso Administrativo
-                    </Button>
-                  </form>
-                </div>
-              </TabsContent>
-            </Tabs>
+              <Alert className="bg-gray-50 border-gray-200">
+                <AlertDescription className="text-sm">
+                  Primeira vez acessando? Ao informar seu CPF, você será redirecionado para criar uma senha.
+                </AlertDescription>
+              </Alert>
+            </div>
           )}
         </CardContent>
         
         <CardFooter className="flex flex-col gap-2">
+          <div className="w-full flex justify-center mt-2">
+            <Link 
+              to="/admin-login" 
+              className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              Área administrativa
+            </Link>
+          </div>
           <p className="text-xs text-center text-gray-500">
             Sistema de Fidelidade por Pontos - Versão 1.0
           </p>
