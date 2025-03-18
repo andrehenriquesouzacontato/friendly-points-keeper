@@ -11,11 +11,12 @@ interface AppContextType {
   registrarCompra: (clienteId: string, valor: number) => void;
   resgatarPontos: (clienteId: string, pontos: number, descricao: string) => boolean;
   login: (username: string, password: string, tipo: 'admin' | 'cliente') => boolean;
-  adminLoginWithLocation: (username: string, password: string) => Promise<boolean>;
+  adminLoginWithStoreCode: (username: string, password: string, storeCode: string) => boolean;
   logout: () => void;
   clienteAtual: Cliente | null;
   setClienteAtual: (cliente: Cliente | null) => void;
   storeLocation: { latitude: number; longitude: number };
+  storeCode: string;
 }
 
 const STORE_LOCATION = {
@@ -23,7 +24,7 @@ const STORE_LOCATION = {
   longitude: -46.633308,
 };
 
-const MAX_DISTANCE = 500;
+const STORE_CODE = "LOJA123";
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -70,6 +71,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [user]);
 
+  const adminLoginWithStoreCode = (username: string, password: string, storeCode: string): boolean => {
+    if (username === 'Admin' && password === '1234' && storeCode === STORE_CODE) {
+      setUser({ username, tipo: 'admin' });
+      return true;
+    }
+    return false;
+  };
+
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371e3;
     const φ1 = (lat1 * Math.PI) / 180;
@@ -83,40 +92,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
     return R * c;
-  };
-
-  const adminLoginWithLocation = async (username: string, password: string): Promise<boolean> => {
-    if (username === 'Admin' && password === '1234') {
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-          });
-        });
-
-        const { latitude, longitude } = position.coords;
-        
-        const distance = calculateDistance(
-          latitude, 
-          longitude, 
-          STORE_LOCATION.latitude, 
-          STORE_LOCATION.longitude
-        );
-        
-        if (distance <= MAX_DISTANCE) {
-          setUser({ username, tipo: 'admin' });
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        console.error("Erro ao obter localização:", error);
-        return false;
-      }
-    }
-    return false;
   };
 
   const addCliente = (clienteData: Omit<Cliente, 'id' | 'pontos' | 'dataRegistro' | 'senha'>) => {
@@ -224,11 +199,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       registrarCompra,
       resgatarPontos,
       login,
-      adminLoginWithLocation,
+      adminLoginWithStoreCode,
       logout,
       clienteAtual,
       setClienteAtual,
-      storeLocation: STORE_LOCATION
+      storeLocation: STORE_LOCATION,
+      storeCode: STORE_CODE
     }}>
       {children}
     </AppContext.Provider>

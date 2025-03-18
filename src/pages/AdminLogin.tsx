@@ -7,37 +7,38 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, ShieldIcon, KeyIcon, MapPinIcon } from 'lucide-react';
+import { Eye, EyeOff, ShieldIcon, KeyIcon, StorefrontIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AdminLogin: React.FC = () => {
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [storeCode, setStoreCode] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [locationError, setLocationError] = useState('');
+  const [loginError, setLoginError] = useState('');
   
-  const { adminLoginWithLocation } = useApp();
+  const { adminLoginWithStoreCode } = useApp();
   const navigate = useNavigate();
   
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setLocationError('');
+    setLoginError('');
     
     try {
-      const loginSuccess = await adminLoginWithLocation(adminUsername, adminPassword);
+      const loginSuccess = adminLoginWithStoreCode(adminUsername, adminPassword, storeCode);
       
       if (loginSuccess) {
         toast.success('Login administrativo realizado com sucesso!');
         navigate('/admin');
       } else {
-        toast.error('Falha no login. Verifique as credenciais e a localização.');
-        setLocationError('Seu acesso foi negado. Para acessar o sistema administrativo, você precisa estar na loja.');
+        toast.error('Falha no login. Verifique as credenciais e o código da loja.');
+        setLoginError('Acesso negado. Verifique se suas credenciais e o código da loja estão corretos.');
       }
     } catch (error) {
       toast.error('Ocorreu um erro durante o login.');
-      setLocationError('Erro ao verificar sua localização. Permita o acesso à localização e tente novamente.');
+      setLoginError('Erro ao realizar login. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -58,12 +59,12 @@ const AdminLogin: React.FC = () => {
               <h2 className="text-xl font-semibold">Acesso Administrativo</h2>
             </div>
             
-            {locationError && (
+            {loginError && (
               <Alert variant="destructive" className="mb-4">
-                <MapPinIcon className="h-4 w-4" />
-                <AlertTitle>Erro de Localização</AlertTitle>
+                <KeyIcon className="h-4 w-4" />
+                <AlertTitle>Erro de Autenticação</AlertTitle>
                 <AlertDescription>
-                  {locationError}
+                  {loginError}
                 </AlertDescription>
               </Alert>
             )}
@@ -101,6 +102,17 @@ const AdminLogin: React.FC = () => {
                 </div>
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="store-code">Código da Loja</Label>
+                <Input
+                  id="store-code"
+                  placeholder="Digite o código da loja"
+                  value={storeCode}
+                  onChange={(e) => setStoreCode(e.target.value)}
+                  required
+                />
+              </div>
+              
               <div className="pt-2">
                 <Button 
                   type="submit" 
@@ -108,7 +120,7 @@ const AdminLogin: React.FC = () => {
                   disabled={loading}
                 >
                   {loading ? (
-                    <>Verificando localização...</>
+                    <>Verificando credenciais...</>
                   ) : (
                     <>
                       <KeyIcon className="mr-2 h-4 w-4" />
@@ -119,9 +131,9 @@ const AdminLogin: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-center p-2 mt-4 bg-gray-50 rounded-md">
-                <MapPinIcon className="text-gray-500 mr-2" size={16} />
+                <StorefrontIcon className="text-gray-500 mr-2" size={16} />
                 <p className="text-xs text-gray-500">
-                  Acesso permitido apenas de dentro da loja
+                  O código da loja é fornecido apenas para funcionários autorizados
                 </p>
               </div>
             </form>
