@@ -7,24 +7,39 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, ShieldIcon, KeyIcon } from 'lucide-react';
+import { Eye, EyeOff, ShieldIcon, KeyIcon, MapPinIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AdminLogin: React.FC = () => {
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [locationError, setLocationError] = useState('');
   
-  const { login } = useApp();
+  const { adminLoginWithLocation } = useApp();
   const navigate = useNavigate();
   
-  const handleAdminLogin = (e: React.FormEvent) => {
+  const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setLocationError('');
     
-    if (login(adminUsername, adminPassword, 'admin')) {
-      toast.success('Login administrativo realizado com sucesso!');
-      navigate('/admin');
-    } else {
-      toast.error('Usuário ou senha administrativos incorretos');
+    try {
+      const loginSuccess = await adminLoginWithLocation(adminUsername, adminPassword);
+      
+      if (loginSuccess) {
+        toast.success('Login administrativo realizado com sucesso!');
+        navigate('/admin');
+      } else {
+        toast.error('Falha no login. Verifique as credenciais e a localização.');
+        setLocationError('Seu acesso foi negado. Para acessar o sistema administrativo, você precisa estar na loja.');
+      }
+    } catch (error) {
+      toast.error('Ocorreu um erro durante o login.');
+      setLocationError('Erro ao verificar sua localização. Permita o acesso à localização e tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
   
@@ -43,6 +58,16 @@ const AdminLogin: React.FC = () => {
               <h2 className="text-xl font-semibold">Acesso Administrativo</h2>
             </div>
             
+            {locationError && (
+              <Alert variant="destructive" className="mb-4">
+                <MapPinIcon className="h-4 w-4" />
+                <AlertTitle>Erro de Localização</AlertTitle>
+                <AlertDescription>
+                  {locationError}
+                </AlertDescription>
+              </Alert>
+            )}
+
             <form onSubmit={handleAdminLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="admin-username">Usuário</Label>
@@ -76,10 +101,29 @@ const AdminLogin: React.FC = () => {
                 </div>
               </div>
               
-              <Button type="submit" className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900">
-                <KeyIcon className="mr-2 h-4 w-4" />
-                Entrar como Administrador
-              </Button>
+              <div className="pt-2">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>Verificando localização...</>
+                  ) : (
+                    <>
+                      <KeyIcon className="mr-2 h-4 w-4" />
+                      Entrar como Administrador
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-center p-2 mt-4 bg-gray-50 rounded-md">
+                <MapPinIcon className="text-gray-500 mr-2" size={16} />
+                <p className="text-xs text-gray-500">
+                  Acesso permitido apenas de dentro da loja
+                </p>
+              </div>
             </form>
           </div>
         </CardContent>
