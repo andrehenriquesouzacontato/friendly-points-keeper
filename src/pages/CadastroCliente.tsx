@@ -9,12 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { validarCPF, formatarCPF } from '@/lib/utils';
 
 const CadastroCliente: React.FC = () => {
   const [nome, setNome] = useState('');
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [cpfValido, setCpfValido] = useState(true);
   
   const { addCliente, user, getClienteByCpf } = useApp();
   const navigate = useNavigate();
@@ -26,8 +28,28 @@ const CadastroCliente: React.FC = () => {
     }
   }, [user, navigate]);
   
+  const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputCpf = e.target.value;
+    const formattedCpf = formatarCPF(inputCpf);
+    setCpf(formattedCpf);
+    
+    // Somente valida se o CPF tiver 11 dígitos (sem formatação)
+    if (inputCpf.replace(/[^\d]/g, '').length === 11) {
+      setCpfValido(validarCPF(inputCpf));
+    } else {
+      setCpfValido(true); // Não mostra erro enquanto o usuário está digitando
+    }
+  };
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Verifica se o CPF é válido
+    if (!validarCPF(cpf)) {
+      toast.error('CPF inválido. Verifique o número informado.');
+      setCpfValido(false);
+      return;
+    }
     
     // Verificar se o CPF já está cadastrado
     if (getClienteByCpf(cpf)) {
@@ -50,6 +72,7 @@ const CadastroCliente: React.FC = () => {
     setCpf('');
     setEmail('');
     setTelefone('');
+    setCpfValido(true);
     
     // Voltar para o dashboard
     navigate('/admin');
@@ -95,9 +118,13 @@ const CadastroCliente: React.FC = () => {
                   id="cpf"
                   placeholder="000.000.000-00"
                   value={cpf}
-                  onChange={(e) => setCpf(e.target.value)}
+                  onChange={handleCpfChange}
+                  className={!cpfValido ? "border-red-500" : ""}
                   required
                 />
+                {!cpfValido && (
+                  <p className="text-red-500 text-sm mt-1">CPF inválido. Verifique o número informado.</p>
+                )}
               </div>
               
               <div className="space-y-2">
