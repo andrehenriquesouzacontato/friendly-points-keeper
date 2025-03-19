@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, ShieldIcon, KeyIcon, StorefrontIcon } from 'lucide-react';
+import { Eye, EyeOff, ShieldIcon, KeyIcon, Store } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const AdminLogin: React.FC = () => {
@@ -131,7 +131,7 @@ const AdminLogin: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-center p-2 mt-4 bg-gray-50 rounded-md">
-                <StorefrontIcon className="text-gray-500 mr-2" size={16} />
+                <Store className="text-gray-500 mr-2" size={16} />
                 <p className="text-xs text-gray-500">
                   O código da loja é fornecido apenas para funcionários autorizados
                 </p>
