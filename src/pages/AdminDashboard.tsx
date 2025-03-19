@@ -10,16 +10,9 @@ import { UserPlus, Search, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const AdminDashboard: React.FC = () => {
-  const { clientes, user, getClienteByCpf, setClienteAtual } = useApp();
+  const { clientes, getClienteByCpf, setClienteAtual } = useApp();
   const [searchCpf, setSearchCpf] = useState('');
   const navigate = useNavigate();
-  
-  // Redirecionar se não estiver logado como admin
-  React.useEffect(() => {
-    if (!user || user.tipo !== 'admin') {
-      navigate('/');
-    }
-  }, [user, navigate]);
   
   const handleSearch = () => {
     if (!searchCpf.trim()) {

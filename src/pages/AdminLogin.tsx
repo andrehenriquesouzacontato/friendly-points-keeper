@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,8 +18,15 @@ const AdminLogin: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
   
-  const { adminLoginWithStoreCode } = useApp();
+  const { adminLoginWithStoreCode, user } = useApp();
   const navigate = useNavigate();
+  
+  // Redirecionar se o usuário já estiver logado como admin
+  useEffect(() => {
+    if (user && user.tipo === 'admin') {
+      navigate('/admin');
+    }
+  }, [user, navigate]);
   
   const handleAdminLogin = async (e: React.FormEvent) => {
     e.preventDefault();
