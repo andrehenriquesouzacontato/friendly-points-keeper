@@ -39,6 +39,29 @@ const ClienteDetalhe: React.FC = () => {
     resgate.clienteId === clienteAtual?.id
   ).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()) : [];
   
+  const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove todos os caracteres não numéricos, exceto ponto e vírgula
+    const inputValue = e.target.value.replace(/[^\d.,]/g, '');
+    
+    // Converter para número puro removendo separadores
+    let numericValue = inputValue.replace(/[.,]/g, '');
+    
+    // Se estiver vazio, define como string vazia
+    if (!numericValue) {
+      setValor('');
+      return;
+    }
+    
+    // Converte para número e formata
+    const number = parseInt(numericValue) / 100;
+    const formattedValue = number.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    
+    setValor(formattedValue);
+  };
+  
   const handleRegistrarCompra = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -47,7 +70,8 @@ const ClienteDetalhe: React.FC = () => {
       return;
     }
     
-    const valorNumerico = parseFloat(valor);
+    // Converter o valor formatado para número
+    const valorNumerico = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
     
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
       toast.error('Informe um valor válido');
@@ -157,10 +181,9 @@ const ClienteDetalhe: React.FC = () => {
                       id="valor"
                       placeholder="0,00"
                       value={valor}
-                      onChange={(e) => setValor(e.target.value)}
-                      type="number"
-                      step="0.01"
-                      min="0.01"
+                      onChange={handleValorChange}
+                      className="text-right"
+                      autoComplete="off"
                       required
                     />
                     <Button type="submit" className="bg-loyalty-pink hover:bg-pink-300 text-pink-900">
