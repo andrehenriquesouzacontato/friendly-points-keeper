@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -11,7 +10,6 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Calendar, DollarSign, Award, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { Slider } from '@/components/ui/slider';
 
 const ClienteDetalhe: React.FC = () => {
   const [valor, setValor] = useState('');
@@ -22,37 +20,29 @@ const ClienteDetalhe: React.FC = () => {
   const { clienteAtual, user, compras, resgates, registrarCompra, resgatarPontos } = useApp();
   const navigate = useNavigate();
   
-  // Redirecionar se não estiver logado como admin ou não tiver cliente selecionado
   React.useEffect(() => {
     if (!user || user.tipo !== 'admin' || !clienteAtual) {
       navigate('/admin');
     }
   }, [user, clienteAtual, navigate]);
   
-  // Filtrar compras do cliente
   const comprasCliente = compras.filter(compra => 
     compra.clienteId === clienteAtual?.id
   ).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
   
-  // Filtrar resgates do cliente
   const resgatesCliente = resgates ? resgates.filter(resgate => 
     resgate.clienteId === clienteAtual?.id
   ).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime()) : [];
   
   const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove todos os caracteres não numéricos, exceto ponto e vírgula
     const inputValue = e.target.value.replace(/[^\d.,]/g, '');
-    
-    // Converter para número puro removendo separadores
     let numericValue = inputValue.replace(/[.,]/g, '');
     
-    // Se estiver vazio, define como string vazia
     if (!numericValue) {
       setValor('');
       return;
     }
     
-    // Converte para número e formata
     const number = parseInt(numericValue) / 100;
     const formattedValue = number.toLocaleString('pt-BR', {
       minimumFractionDigits: 2,
@@ -60,6 +50,17 @@ const ClienteDetalhe: React.FC = () => {
     });
     
     setValor(formattedValue);
+  };
+  
+  const handlePontosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value.replace(/[^\d]/g, '');
+    const pontos = valor ? parseInt(valor) : 0;
+    
+    if (clienteAtual && pontos > clienteAtual.pontos) {
+      setPontosResgatar(clienteAtual.pontos);
+    } else {
+      setPontosResgatar(pontos);
+    }
   };
   
   const handleRegistrarCompra = (e: React.FormEvent) => {
@@ -70,7 +71,6 @@ const ClienteDetalhe: React.FC = () => {
       return;
     }
     
-    // Converter o valor formatado para número
     const valorNumerico = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
     
     if (isNaN(valorNumerico) || valorNumerico <= 0) {
@@ -214,17 +214,18 @@ const ClienteDetalhe: React.FC = () => {
                         <Label htmlFor="pontos">Pontos a Resgatar</Label>
                         <span className="text-green-700 font-medium">{pontosResgatar} pontos</span>
                       </div>
-                      <Slider
+                      <Input
                         id="pontos"
-                        value={[pontosResgatar]}
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Digite a quantidade de pontos"
+                        value={pontosResgatar || ''}
+                        onChange={handlePontosChange}
+                        className="text-right"
                         max={clienteAtual.pontos}
-                        step={1}
-                        onValueChange={(value) => setPontosResgatar(value[0])}
-                        className="py-4"
                       />
-                      <div className="text-xs text-gray-500 flex justify-between">
-                        <span>0</span>
-                        <span>Máximo: {clienteAtual.pontos} pontos</span>
+                      <div className="text-xs text-gray-500 flex justify-end">
+                        <span>Disponível: {clienteAtual.pontos} pontos</span>
                       </div>
                     </div>
                     
@@ -258,12 +259,10 @@ const ClienteDetalhe: React.FC = () => {
                 
                 {comprasCliente.length > 0 || resgatesCliente.length > 0 ? (
                   <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
-                    {/* Combinar e ordenar compras e resgates */}
                     {[...comprasCliente, ...resgatesCliente]
                       .sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
                       .map((item) => {
                         if ('valor' in item) {
-                          // É uma compra
                           return (
                             <div key={item.id} className="flex justify-between p-3 bg-gray-50 rounded-md border border-gray-100">
                               <div className="flex items-center gap-2">
@@ -278,7 +277,6 @@ const ClienteDetalhe: React.FC = () => {
                             </div>
                           );
                         } else {
-                          // É um resgate
                           return (
                             <div key={item.id} className="flex justify-between p-3 bg-pink-50 rounded-md border border-pink-100">
                               <div className="flex items-center gap-2">
