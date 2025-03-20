@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { AppProvider, useApp } from "./context/AppContext";
+import { ApiProvider } from "./context/ApiContext";
 import Login from "./pages/Login";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -18,23 +19,25 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AppProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/admin-login" element={<AdminLogin />} />
-            <Route path="/admin/*" element={
-              <AdminRoutes />
-            } />
-            <Route path="/cliente" element={<ClienteDashboard />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AppProvider>
+    <ApiProvider>
+      <AppProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Login />} />
+              <Route path="/admin-login" element={<AdminLogin />} />
+              <Route path="/admin/*" element={
+                <AdminRoutes />
+              } />
+              <Route path="/cliente" element={<ClienteDashboard />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AppProvider>
+    </ApiProvider>
   </QueryClientProvider>
 );
 

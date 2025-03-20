@@ -1,4 +1,3 @@
-
 export interface Cliente {
   id: string;
   nome: string;
@@ -29,5 +28,13 @@ export interface Resgate {
 export interface User {
   username: string;
   tipo: 'admin' | 'cliente';
+  clienteId?: string;
+}
+
+export interface TokenDTO {
+  accessToken: string;
+  expiration: string;
+  userType: string;
+  userName: string;
   clienteId?: string;
 }
