@@ -35,6 +35,11 @@ const ClienteDashboard: React.FC = () => {
     return <div>Carregando...</div>;
   }
   
+  // Função para formatar números com separador de milhares
+  const formatarNumero = (numero: number): string => {
+    return numero.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  };
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -52,7 +57,7 @@ const ClienteDashboard: React.FC = () => {
                 <div className="flex items-center justify-center mb-2">
                   <Award className="h-10 w-10 text-pink-600" />
                 </div>
-                <h3 className="text-4xl font-bold text-pink-900">{cliente.pontos}</h3>
+                <h3 className="text-4xl font-bold text-pink-900">{formatarNumero(cliente.pontos)}</h3>
                 <p className="text-gray-600 mt-2">pontos acumulados</p>
               </div>
             </CardContent>
@@ -110,7 +115,7 @@ const ClienteDashboard: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <p className="text-gray-600">R$ {item.valor.toFixed(2)}</p>
-                            <p className="text-sm text-green-600 font-medium">+{item.pontosGanhos} pontos</p>
+                            <p className="text-sm text-green-600 font-medium">+{formatarNumero(item.pontosGanhos)} pontos</p>
                           </div>
                         </div>
                       );
@@ -131,7 +136,7 @@ const ClienteDashboard: React.FC = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm text-pink-600 font-medium">-{item.pontos} pontos</p>
+                            <p className="text-sm text-pink-600 font-medium">-{formatarNumero(item.pontos)} pontos</p>
                           </div>
                         </div>
                       );

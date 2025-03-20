@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -117,6 +118,11 @@ const ClienteDetalhe: React.FC = () => {
     return <div>Carregando...</div>;
   }
   
+  // Function to format numbers with thousands separator
+  const formatarNumero = (numero: number): string => {
+    return numero.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+  };
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -159,7 +165,7 @@ const ClienteDetalhe: React.FC = () => {
                     <Award className="h-5 w-5 text-green-600" />
                     <div>
                       <p className="text-sm font-medium text-gray-600">Total de Pontos</p>
-                      <p className="text-xl font-bold text-green-700">{clienteAtual.pontos}</p>
+                      <p className="text-xl font-bold text-green-700">{formatarNumero(clienteAtual.pontos)}</p>
                     </div>
                   </div>
                 </div>
@@ -212,7 +218,7 @@ const ClienteDetalhe: React.FC = () => {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <Label htmlFor="pontos">Pontos a Resgatar</Label>
-                        <span className="text-green-700 font-medium">{pontosResgatar} pontos</span>
+                        <span className="text-green-700 font-medium">{formatarNumero(pontosResgatar)} pontos</span>
                       </div>
                       <Input
                         id="pontos"
@@ -225,7 +231,7 @@ const ClienteDetalhe: React.FC = () => {
                         max={clienteAtual.pontos}
                       />
                       <div className="text-xs text-gray-500 flex justify-end">
-                        <span>Disponível: {clienteAtual.pontos} pontos</span>
+                        <span>Disponível: {formatarNumero(clienteAtual.pontos)} pontos</span>
                       </div>
                     </div>
                     
@@ -272,7 +278,7 @@ const ClienteDetalhe: React.FC = () => {
                               </div>
                               <div className="flex items-center gap-4">
                                 <span className="text-gray-600">R$ {item.valor.toFixed(2)}</span>
-                                <span className="text-green-600 font-medium">+{item.pontosGanhos} pts</span>
+                                <span className="text-green-600 font-medium">+{formatarNumero(item.pontosGanhos)} pts</span>
                               </div>
                             </div>
                           );
@@ -285,7 +291,7 @@ const ClienteDetalhe: React.FC = () => {
                                 <span className="text-pink-500">Resgate: {item.descricao}</span>
                               </div>
                               <div className="flex items-center">
-                                <span className="text-pink-600 font-medium">-{item.pontos} pts</span>
+                                <span className="text-pink-600 font-medium">-{formatarNumero(item.pontos)} pts</span>
                               </div>
                             </div>
                           );

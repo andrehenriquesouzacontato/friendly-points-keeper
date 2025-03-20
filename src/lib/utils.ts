@@ -1,9 +1,17 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
+}
+
+/**
+ * Formata um número com separador de milhares
+ * @param numero Número a ser formatado
+ * @returns Número formatado com pontos para milhares
+ */
+export function formatarNumero(numero: number): string {
+  return numero.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
 }
 
 /**
