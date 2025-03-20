@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApp } from '../context/AppContext';
+import { useApi } from '../context/ApiContext';
+import { clienteAPI } from '../services/api';
 import Header from '../components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,17 +17,19 @@ const CadastroCliente: React.FC = () => {
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
+  const [senha, setSenha] = useState('');
   const [cpfValido, setCpfValido] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   
-  const { addCliente, user, getClienteByCpf } = useApp();
+  const { token } = useApi();
   const navigate = useNavigate();
   
   // Redirecionar se não estiver logado como admin
   React.useEffect(() => {
-    if (!user || user.tipo !== 'admin') {
-      navigate('/');
+    if (!token || token.userType !== 'admin') {
+      navigate('/admin-login');
     }
-  }, [user, navigate]);
+  }, [token, navigate]);
   
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputCpf = e.target.value;
@@ -41,7 +44,7 @@ const CadastroCliente: React.FC = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Verifica se o CPF é válido
@@ -51,31 +54,40 @@ const CadastroCliente: React.FC = () => {
       return;
     }
     
-    // Verificar se o CPF já está cadastrado
-    if (getClienteByCpf(cpf)) {
-      toast.error('CPF já cadastrado no sistema');
-      return;
+    setIsLoading(true);
+    
+    try {
+      // Enviar para a API
+      await clienteAPI.create({
+        nome,
+        cpf: cpf.replace(/[^\d]/g, ''), // Envia apenas os números
+        email: email || null,
+        telefone,
+        senha: senha || null
+      });
+      
+      toast.success('Cliente cadastrado com sucesso!');
+      
+      // Limpar o formulário
+      setNome('');
+      setCpf('');
+      setEmail('');
+      setTelefone('');
+      setSenha('');
+      setCpfValido(true);
+      
+      // Voltar para o dashboard
+      navigate('/admin');
+    } catch (error) {
+      console.error('Erro ao cadastrar cliente:', error);
+      if (error instanceof Error) {
+        toast.error(error.message || 'Erro ao cadastrar cliente');
+      } else {
+        toast.error('Erro ao cadastrar cliente');
+      }
+    } finally {
+      setIsLoading(false);
     }
-    
-    // Adicionar o cliente (sem senha)
-    addCliente({
-      nome,
-      cpf,
-      email,
-      telefone
-    });
-    
-    toast.success('Cliente cadastrado com sucesso!');
-    
-    // Limpar o formulário
-    setNome('');
-    setCpf('');
-    setEmail('');
-    setTelefone('');
-    setCpfValido(true);
-    
-    // Voltar para o dashboard
-    navigate('/admin');
   };
   
   return (
@@ -139,19 +151,38 @@ const CadastroCliente: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="telefone">Telefone</Label>
+                <Label htmlFor="telefone">Telefone <span className="text-red-500">*</span></Label>
                 <Input
                   id="telefone"
                   placeholder="(00) 00000-0000"
                   value={telefone}
                   onChange={(e) => setTelefone(e.target.value)}
+                  required
                 />
               </div>
               
+              <div className="space-y-2">
+                <Label htmlFor="senha">Senha (opcional)</Label>
+                <Input
+                  id="senha"
+                  type="password"
+                  placeholder="Senha para acesso do cliente"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                />
+                <p className="text-sm text-gray-500">
+                  Se não definir uma senha, o cliente precisará definir uma no primeiro acesso.
+                </p>
+              </div>
+              
               <div className="pt-4">
-                <Button type="submit" className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-loyalty-pink hover:bg-pink-300 text-pink-900"
+                  disabled={isLoading}
+                >
                   <Save className="h-4 w-4 mr-2" />
-                  Cadastrar Cliente
+                  {isLoading ? 'Cadastrando...' : 'Cadastrar Cliente'}
                 </Button>
               </div>
             </form>
