@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { UserPlus, Search, PlusCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatarNumero } from '@/lib/utils';
 
 const AdminDashboard: React.FC = () => {
   const { clientes, getClienteByCpf, setClienteAtual } = useApp();
@@ -86,7 +87,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-sm text-gray-500">CPF: {cliente.cpf}</div>
                 <div className="mt-2 flex justify-between items-center">
                   <span className="text-sm bg-loyalty-green px-2 py-0.5 rounded text-green-900">
-                    {cliente.pontos} pontos
+                    {formatarNumero(cliente.pontos)} pontos
                   </span>
                   <Button variant="ghost" size="sm" className="text-gray-600 p-0">
                     <PlusCircle className="h-4 w-4" />
