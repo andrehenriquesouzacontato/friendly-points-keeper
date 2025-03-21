@@ -1,8 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useApi } from '../context/ApiContext';
-import { clienteAPI } from '../services/api';
+import { useApp } from '../context/AppContext';
 import Header from '../components/Header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,15 +20,15 @@ const CadastroCliente: React.FC = () => {
   const [cpfValido, setCpfValido] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
-  const { token } = useApi();
+  const { addCliente, user } = useApp();
   const navigate = useNavigate();
   
   // Redirecionar se não estiver logado como admin
   React.useEffect(() => {
-    if (!token || token.userType !== 'admin') {
+    if (!user || user.tipo !== 'admin') {
       navigate('/admin-login');
     }
-  }, [token, navigate]);
+  }, [user, navigate]);
   
   const handleCpfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputCpf = e.target.value;
@@ -57,13 +56,13 @@ const CadastroCliente: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Enviar para a API
-      await clienteAPI.create({
+      // Adicionar cliente ao contexto (armazenamento local)
+      addCliente({
         nome,
         cpf: cpf.replace(/[^\d]/g, ''), // Envia apenas os números
-        email: email || null,
+        email,
         telefone,
-        senha: senha || null
+        senha
       });
       
       toast.success('Cliente cadastrado com sucesso!');
