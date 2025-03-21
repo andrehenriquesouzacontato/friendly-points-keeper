@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -61,8 +60,7 @@ const CadastroCliente: React.FC = () => {
         nome,
         cpf: cpf.replace(/[^\d]/g, ''), // Envia apenas os números
         email,
-        telefone,
-        senha
+        telefone
       });
       
       toast.success('Cliente cadastrado com sucesso!');
