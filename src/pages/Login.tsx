@@ -1,13 +1,13 @@
 
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useApi } from '../context/ApiContext';
+import { useApp } from '../context/AppContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, UserIcon, ShieldIcon } from 'lucide-react';
+import { Eye, EyeOff, UserIcon } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const Login: React.FC = () => {
@@ -18,7 +18,7 @@ const Login: React.FC = () => {
   // Estado para mostrar/esconder senha
   const [mostrarSenha, setMostrarSenha] = useState(false);
   
-  const { loginCliente, isLoading } = useApi();
+  const { login } = useApp();
   const navigate = useNavigate();
   
   const handleClienteLogin = async (e: React.FormEvent) => {
@@ -29,11 +29,20 @@ const Login: React.FC = () => {
       return;
     }
     
-    // Tentar fazer login usando a API
-    const result = await loginCliente(clienteCpf, clienteSenha);
+    // Verifica se o CPF contém apenas números
+    const cpfLimpo = clienteCpf.replace(/\D/g, '');
     
-    if (result) {
-      navigate('/cliente');
+    try {
+      const success = await login(cpfLimpo, clienteSenha, 'cliente');
+      
+      if (success) {
+        navigate('/cliente');
+      } else {
+        toast.error('CPF ou senha inválidos');
+      }
+    } catch (error) {
+      console.error('Erro no login:', error);
+      toast.error('Ocorreu um erro ao tentar fazer login');
     }
   };
   
@@ -88,9 +97,8 @@ const Login: React.FC = () => {
               <Button 
                 type="submit" 
                 className="w-full bg-loyalty-green hover:bg-green-300 text-green-900"
-                disabled={isLoading}
               >
-                {isLoading ? 'Entrando...' : 'Entrar como Cliente'}
+                Entrar como Cliente
               </Button>
             </form>
             
