@@ -17,6 +17,7 @@ interface AppContextType {
   setClienteAtual: (cliente: Cliente | null) => void;
   storeLocation: { latitude: number; longitude: number };
   storeCode: string;
+  excluirCliente: (clienteId: string) => boolean;
 }
 
 const STORE_LOCATION = {
@@ -187,7 +188,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setUser(null);
     setClienteAtual(null);
   };
-  
+
+  const excluirCliente = (clienteId: string): boolean => {
+    const clienteIndex = clientes.findIndex(c => c.id === clienteId);
+    if (clienteIndex === -1) {
+      return false;
+    }
+    
+    const temCompras = compras.some(c => c.clienteId === clienteId);
+    const temResgates = resgates.some(r => r.clienteId === clienteId);
+    
+    if (temCompras || temResgates) {
+      return false;
+    }
+    
+    setClientes(prevClientes => prevClientes.filter(c => c.id !== clienteId));
+    
+    if (clienteAtual && clienteAtual.id === clienteId) {
+      setClienteAtual(null);
+    }
+    
+    return true;
+  };
+
   return (
     <AppContext.Provider value={{
       clientes,
@@ -204,7 +227,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       clienteAtual,
       setClienteAtual,
       storeLocation: STORE_LOCATION,
-      storeCode: STORE_CODE
+      storeCode: STORE_CODE,
+      excluirCliente
     }}>
       {children}
     </AppContext.Provider>

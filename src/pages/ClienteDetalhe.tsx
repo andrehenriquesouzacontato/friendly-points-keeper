@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -8,17 +7,28 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Calendar, DollarSign, Award, Gift } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, Award, Gift, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const ClienteDetalhe: React.FC = () => {
   const [valor, setValor] = useState('');
   const [pontosResgatar, setPontosResgatar] = useState<number>(0);
   const [descricaoResgate, setDescricaoResgate] = useState('');
   const [mostrarResgate, setMostrarResgate] = useState(false);
+  const [excluirDialogAberto, setExcluirDialogAberto] = useState(false);
   
-  const { clienteAtual, user, compras, resgates, registrarCompra, resgatarPontos } = useApp();
+  const { clienteAtual, user, compras, resgates, registrarCompra, resgatarPontos, excluirCliente } = useApp();
   const navigate = useNavigate();
   
   React.useEffect(() => {
@@ -114,11 +124,25 @@ const ClienteDetalhe: React.FC = () => {
     }
   };
   
+  const handleExcluirCliente = () => {
+    if (!clienteAtual) return;
+    
+    const sucesso = excluirCliente(clienteAtual.id);
+    
+    if (sucesso) {
+      toast.success("Cliente excluído com sucesso!");
+      navigate('/admin');
+    } else {
+      toast.error("Não é possível excluir um cliente que possui compras ou resgates registrados.");
+    }
+    
+    setExcluirDialogAberto(false);
+  };
+  
   if (!clienteAtual) {
     return <div>Carregando...</div>;
   }
   
-  // Function to format numbers with thousands separator
   const formatarNumero = (numero: number): string => {
     return numero.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
   };
@@ -128,16 +152,27 @@ const ClienteDetalhe: React.FC = () => {
       <Header />
       
       <main className="container mx-auto py-8 px-4">
-        <div className="mb-6 flex items-center">
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              className="mr-2" 
+              onClick={() => navigate('/admin')}
+            >
+              <ArrowLeft className="h-4 w-4 mr-1" />
+              Voltar
+            </Button>
+            <h2 className="text-2xl font-bold">Detalhes do Cliente</h2>
+          </div>
+          
           <Button 
-            variant="ghost" 
-            className="mr-2" 
-            onClick={() => navigate('/admin')}
+            variant="destructive" 
+            size="sm"
+            onClick={() => setExcluirDialogAberto(true)}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" />
-            Voltar
+            <Trash2 className="h-4 w-4 mr-2" />
+            Excluir Cliente
           </Button>
-          <h2 className="text-2xl font-bold">Detalhes do Cliente</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -307,6 +342,28 @@ const ClienteDetalhe: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+        
+        <AlertDialog open={excluirDialogAberto} onOpenChange={setExcluirDialogAberto}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o cliente <strong>{clienteAtual.nome}</strong>? 
+                <br /><br />
+                Esta ação não poderá ser desfeita. Clientes que possuem histórico de compras ou resgates não podem ser excluídos.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleExcluirCliente}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Sim, excluir
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </main>
     </div>
   );
