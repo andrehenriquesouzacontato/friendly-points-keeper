@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
@@ -15,7 +16,6 @@ const CadastroCliente: React.FC = () => {
   const [cpf, setCpf] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
-  const [senha, setSenha] = useState('');
   const [cpfValido, setCpfValido] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -70,7 +70,6 @@ const CadastroCliente: React.FC = () => {
       setCpf('');
       setEmail('');
       setTelefone('');
-      setSenha('');
       setCpfValido(true);
       
       // Voltar para o dashboard
@@ -159,16 +158,8 @@ const CadastroCliente: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="senha">Senha (opcional)</Label>
-                <Input
-                  id="senha"
-                  type="password"
-                  placeholder="Senha para acesso do cliente"
-                  value={senha}
-                  onChange={(e) => setSenha(e.target.value)}
-                />
                 <p className="text-sm text-gray-500">
-                  Se não definir uma senha, o cliente precisará definir uma no primeiro acesso.
+                  O cliente criará sua própria senha no primeiro acesso ao sistema.
                 </p>
               </div>
               
