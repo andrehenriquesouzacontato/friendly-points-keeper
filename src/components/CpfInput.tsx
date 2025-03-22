@@ -11,9 +11,14 @@ interface CpfInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>
 export function CpfInput({ value, onChange, ...props }: CpfInputProps) {
   const cpfMask = useCpfMask(value);
 
+  // Atualizar o valor do parent apenas quando o valor mudar, não no render inicial
   React.useEffect(() => {
-    onChange(cpfMask.value);
-  }, [cpfMask.value, onChange]);
+    // Importante: chamar o onChange apenas se o valor for diferente
+    // para evitar loops infinitos
+    if (cpfMask.value !== value.replace(/\D/g, '')) {
+      onChange(cpfMask.value);
+    }
+  }, [cpfMask.value, value, onChange]);
 
   return (
     <Input

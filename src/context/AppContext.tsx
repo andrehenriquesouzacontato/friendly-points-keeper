@@ -107,7 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
   
   const getClienteByCpf = (cpf: string) => {
-    return clientes.find(cliente => cliente.cpf === cpf);
+    const numericCpf = cpf.replace(/\D/g, '');
+    return clientes.find(cliente => cliente.cpf.replace(/\D/g, '') === numericCpf);
   };
   
   const registrarCompra = (clienteId: string, valor: number) => {
@@ -171,7 +172,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return true;
       }
     } else {
-      const cliente = clientes.find(c => c.cpf === username && c.senha === password);
+      const cpfNormalizado = username.replace(/\D/g, '');
+      
+      const cliente = clientes.find(c => c.cpf.replace(/\D/g, '') === cpfNormalizado && c.senha === password);
+      
       if (cliente) {
         setUser({ 
           username: cliente.nome, 

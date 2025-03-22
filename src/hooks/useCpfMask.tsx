@@ -3,8 +3,12 @@ import { useState, useEffect } from 'react';
 import { formatarCPF } from '@/lib/utils';
 
 export const useCpfMask = (initialValue: string = '') => {
-  const [value, setValue] = useState(initialValue);
-  const [formattedValue, setFormattedValue] = useState(() => formatarCPF(initialValue));
+  const [value, setValue] = useState(() => {
+    // Garantir que o valor inicial seja apenas números
+    return initialValue.replace(/\D/g, '');
+  });
+  
+  const [formattedValue, setFormattedValue] = useState(() => formatarCPF(value));
 
   useEffect(() => {
     setFormattedValue(formatarCPF(value));
