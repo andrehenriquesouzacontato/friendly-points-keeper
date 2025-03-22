@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, UserIcon, Lock, KeyRound } from 'lucide-react';
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Eye, EyeOff, UserIcon, Lock, KeyRound, Info } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CpfInput } from '@/components/CpfInput';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -229,12 +229,28 @@ const Login: React.FC = () => {
                   </div>
                 </div>
                 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-loyalty-green hover:bg-green-300 text-green-900"
-                >
-                  {clienteSenha ? "Entrar como Cliente" : "Continuar"}
-                </Button>
+                <div className="flex flex-col gap-2">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-loyalty-green hover:bg-green-300 text-green-900"
+                  >
+                    {clienteSenha ? "Entrar como Cliente" : "Continuar"}
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full border-dashed border-loyalty-green text-loyalty-green"
+                    onClick={() => {
+                      setClienteCpf('');
+                      setClienteSenha('');
+                      handleVerificarCliente({ preventDefault: () => {} } as React.FormEvent);
+                    }}
+                  >
+                    <Info className="mr-2 h-4 w-4" />
+                    Primeiro acesso? Crie sua senha
+                  </Button>
+                </div>
               </form>
               
               <div className="flex items-center justify-between">
@@ -252,8 +268,9 @@ const Login: React.FC = () => {
               </div>
               
               <Alert className="bg-gray-50 border-gray-200">
+                <AlertTitle className="text-sm font-medium">Instruções para o primeiro acesso</AlertTitle>
                 <AlertDescription className="text-sm">
-                  Para o primeiro acesso, digite apenas seu CPF e clique em Continuar para cadastrar sua senha.
+                  Se este é seu primeiro acesso, digite seu CPF ou clique no botão "Primeiro acesso" para cadastrar sua senha.
                 </AlertDescription>
               </Alert>
             </div>
@@ -264,6 +281,12 @@ const Login: React.FC = () => {
                 <KeyRound className="text-loyalty-green mr-2" size={24} />
                 <h2 className="text-xl font-semibold">Recuperar Senha</h2>
               </div>
+              
+              <Alert className="mb-4">
+                <AlertDescription>
+                  Para recuperar sua senha, informe seu CPF cadastrado no sistema. Por segurança, seu CPF será validado antes de permitir a redefinição.
+                </AlertDescription>
+              </Alert>
               
               <form onSubmit={handleRecuperarSenha} className="space-y-4">
                 <div className="space-y-2">
@@ -292,7 +315,7 @@ const Login: React.FC = () => {
                     type="submit" 
                     className="flex-1 bg-loyalty-green hover:bg-green-300 text-green-900"
                   >
-                    Recuperar
+                    Verificar CPF
                   </Button>
                 </div>
               </form>
@@ -304,6 +327,12 @@ const Login: React.FC = () => {
                 <Lock className="text-loyalty-green mr-2" size={24} />
                 <h2 className="text-xl font-semibold">Criar Senha</h2>
               </div>
+              
+              <Alert>
+                <AlertDescription>
+                  Bem-vindo ao seu primeiro acesso! Por favor, crie uma senha para acessar sua conta.
+                </AlertDescription>
+              </Alert>
               
               <form onSubmit={handleCriarSenha} className="space-y-4">
                 <div className="space-y-2">
@@ -449,4 +478,3 @@ const Login: React.FC = () => {
 };
 
 export default Login;
-
