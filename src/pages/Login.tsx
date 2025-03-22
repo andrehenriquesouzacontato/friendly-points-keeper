@@ -13,34 +13,26 @@ import { CpfInput } from '@/components/CpfInput';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Login: React.FC = () => {
-  // Campos para login de cliente
   const [clienteCpf, setClienteCpf] = useState('');
   const [clienteSenha, setClienteSenha] = useState('');
-  
-  // Estado para mostrar/esconder senha
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  
-  // Estado para o modo de criação de senha
   const [modoCriarSenha, setModoCriarSenha] = useState(false);
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [clienteEncontrado, setClienteEncontrado] = useState<any>(null);
-
-  // Estado para esqueci minha senha
   const [modoEsqueciSenha, setModoEsqueciSenha] = useState(false);
   const [cpfRecuperacao, setCpfRecuperacao] = useState('');
   const [dialogRecuperacaoAberto, setDialogRecuperacaoAberto] = useState(false);
-  
+
   const { login, getClienteByCpf, clientes } = useApp();
   const navigate = useNavigate();
-  
+
   const verificarClienteExistente = (cpf: string) => {
     if (!cpf) {
       toast.error('Digite o CPF para continuar');
       return null;
     }
     
-    // Verifica se o cliente existe pelo CPF
     const cliente = getClienteByCpf(cpf);
     
     if (!cliente) {
@@ -50,24 +42,22 @@ const Login: React.FC = () => {
     
     return cliente;
   };
-  
+
   const handleVerificarCliente = (e: React.FormEvent) => {
     e.preventDefault();
     
     const cliente = verificarClienteExistente(clienteCpf);
     if (!cliente) return;
     
-    // Se o cliente existe mas não tem senha, mostrar modo de criar senha
     if (!cliente.senha) {
       setClienteEncontrado(cliente);
       setModoCriarSenha(true);
       toast.info('Primeiro acesso detectado! Por favor, crie uma senha.');
     } else {
-      // Se já tem senha, continua com o login normal
       setModoCriarSenha(false);
     }
   };
-  
+
   const handleCriarSenha = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -86,7 +76,6 @@ const Login: React.FC = () => {
       return;
     }
     
-    // Atualiza a senha do cliente
     const clientesAtualizados = clientes.map(c => {
       if (c.id === clienteEncontrado.id) {
         return { ...c, senha: novaSenha };
@@ -94,10 +83,8 @@ const Login: React.FC = () => {
       return c;
     });
     
-    // Salva no localStorage
     localStorage.setItem('clientes', JSON.stringify(clientesAtualizados));
     
-    // Faz login automático
     const success = login(clienteEncontrado.cpf, novaSenha, 'cliente');
     
     if (success) {
@@ -110,7 +97,7 @@ const Login: React.FC = () => {
       setConfirmarSenha('');
     }
   };
-  
+
   const handleClienteLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -139,7 +126,6 @@ const Login: React.FC = () => {
     const cliente = verificarClienteExistente(cpfRecuperacao);
     if (!cliente) return;
     
-    // Se o cliente existe, mostrar dialog para criar nova senha
     setClienteEncontrado(cliente);
     setDialogRecuperacaoAberto(true);
   };
@@ -162,7 +148,6 @@ const Login: React.FC = () => {
       return;
     }
     
-    // Atualiza a senha do cliente
     const clientesAtualizados = clientes.map(c => {
       if (c.id === clienteEncontrado.id) {
         return { ...c, senha: novaSenha };
@@ -170,7 +155,6 @@ const Login: React.FC = () => {
       return c;
     });
     
-    // Salva no localStorage
     localStorage.setItem('clientes', JSON.stringify(clientesAtualizados));
     
     toast.success('Senha redefinida com sucesso! Faça login com sua nova senha.');
@@ -180,7 +164,7 @@ const Login: React.FC = () => {
     setNovaSenha('');
     setConfirmarSenha('');
   };
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-loyalty-pink via-loyalty-white to-loyalty-green flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -239,8 +223,8 @@ const Login: React.FC = () => {
                   
                   <Button
                     type="button"
-                    variant="outline"
-                    className="w-full border-dashed border-loyalty-green text-loyalty-green"
+                    variant="highlight"
+                    className="w-full py-2.5 shadow-sm"
                     onClick={() => {
                       setClienteCpf('');
                       setClienteSenha('');
@@ -275,7 +259,6 @@ const Login: React.FC = () => {
               </Alert>
             </div>
           ) : modoEsqueciSenha ? (
-            // Modo Esqueci Minha Senha
             <div className="space-y-4 mt-2">
               <div className="flex items-center justify-center mb-4">
                 <KeyRound className="text-loyalty-green mr-2" size={24} />
@@ -321,7 +304,6 @@ const Login: React.FC = () => {
               </form>
             </div>
           ) : (
-            // Modo Criar Senha (primeiro acesso)
             <div className="space-y-4 mt-2">
               <div className="flex items-center justify-center mb-4">
                 <Lock className="text-loyalty-green mr-2" size={24} />
@@ -408,7 +390,6 @@ const Login: React.FC = () => {
         </CardFooter>
       </Card>
 
-      {/* Dialog para redefinição de senha */}
       <Dialog open={dialogRecuperacaoAberto} onOpenChange={setDialogRecuperacaoAberto}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
