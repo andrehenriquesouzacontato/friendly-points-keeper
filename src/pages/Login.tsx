@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,8 +23,12 @@ const Login: React.FC = () => {
   const [cpfRecuperacao, setCpfRecuperacao] = useState('');
   const [dialogRecuperacaoAberto, setDialogRecuperacaoAberto] = useState(false);
 
-  const { login, getClienteByCpf, clientes } = useApp();
+  const { login, getClienteByCpf, clientes, atualizarSenhaCliente } = useApp();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('Clientes disponíveis:', clientes);
+  }, [clientes]);
 
   const verificarClienteExistente = (cpf: string) => {
     if (!cpf) {
@@ -34,6 +37,7 @@ const Login: React.FC = () => {
     }
     
     const cliente = getClienteByCpf(cpf);
+    console.log('Cliente encontrado:', cliente);
     
     if (!cliente) {
       toast.error('CPF não cadastrado. Entre em contato com o administrador.');
@@ -48,6 +52,8 @@ const Login: React.FC = () => {
     
     const cliente = verificarClienteExistente(clienteCpf);
     if (!cliente) return;
+    
+    console.log('Cliente encontrado, tem senha?', !!cliente.senha);
     
     if (!cliente.senha) {
       setClienteEncontrado(cliente);
@@ -76,25 +82,25 @@ const Login: React.FC = () => {
       return;
     }
     
-    const clientesAtualizados = clientes.map(c => {
-      if (c.id === clienteEncontrado.id) {
-        return { ...c, senha: novaSenha };
-      }
-      return c;
-    });
+    console.log('Criando senha para cliente:', clienteEncontrado.id, novaSenha);
     
-    localStorage.setItem('clientes', JSON.stringify(clientesAtualizados));
-    
-    const success = login(clienteEncontrado.cpf, novaSenha, 'cliente');
+    const success = atualizarSenhaCliente(clienteEncontrado.id, novaSenha);
     
     if (success) {
-      toast.success('Senha criada com sucesso!');
-      navigate('/cliente');
+      console.log('Senha criada com sucesso, tentando login');
+      const loginSuccess = login(clienteEncontrado.cpf, novaSenha, 'cliente');
+      
+      if (loginSuccess) {
+        toast.success('Senha criada com sucesso!');
+        navigate('/cliente');
+      } else {
+        toast.error('Erro ao fazer login automático. Tente novamente.');
+        setModoCriarSenha(false);
+        setNovaSenha('');
+        setConfirmarSenha('');
+      }
     } else {
-      toast.error('Erro ao fazer login automático. Tente novamente.');
-      setModoCriarSenha(false);
-      setNovaSenha('');
-      setConfirmarSenha('');
+      toast.error('Erro ao criar senha. Tente novamente.');
     }
   };
 
@@ -107,6 +113,7 @@ const Login: React.FC = () => {
     }
     
     try {
+      console.log('Tentando login com CPF:', clienteCpf, 'e senha:', clienteSenha);
       const success = await login(clienteCpf, clienteSenha, 'cliente');
       
       if (success) {
@@ -175,7 +182,6 @@ const Login: React.FC = () => {
         
         <CardContent>
           {!modoCriarSenha && !modoEsqueciSenha ? (
-            // Modo Login
             <div className="space-y-4 mt-2">
               <div className="flex items-center justify-center mb-4">
                 <UserIcon className="text-loyalty-green mr-2" size={24} />

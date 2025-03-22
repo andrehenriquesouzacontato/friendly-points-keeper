@@ -18,6 +18,7 @@ interface AppContextType {
   storeLocation: { latitude: number; longitude: number };
   storeCode: string;
   excluirCliente: (clienteId: string) => boolean;
+  atualizarSenhaCliente: (clienteId: string, novaSenha: string) => boolean;
 }
 
 const STORE_LOCATION = {
@@ -173,10 +174,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     } else {
       const cpfNormalizado = username.replace(/\D/g, '');
+      console.log('Login attempt for CPF:', cpfNormalizado);
       
-      const cliente = clientes.find(c => c.cpf.replace(/\D/g, '') === cpfNormalizado && c.senha === password);
+      const cliente = clientes.find(c => {
+        const clienteCpfNormalizado = c.cpf.replace(/\D/g, '');
+        console.log('Comparing with client:', clienteCpfNormalizado, 'Password:', c.senha);
+        return clienteCpfNormalizado === cpfNormalizado && c.senha === password;
+      });
       
       if (cliente) {
+        console.log('Login successful for client:', cliente.nome);
         setUser({ 
           username: cliente.nome, 
           tipo: 'cliente',
@@ -185,7 +192,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return true;
       }
     }
+    console.log('Login failed');
     return false;
+  };
+  
+  const atualizarSenhaCliente = (clienteId: string, novaSenha: string): boolean => {
+    const clienteIndex = clientes.findIndex(c => c.id === clienteId);
+    if (clienteIndex === -1) {
+      return false;
+    }
+    
+    const clientesAtualizados = clientes.map(c => {
+      if (c.id === clienteId) {
+        return { ...c, senha: novaSenha };
+      }
+      return c;
+    });
+    
+    setClientes(clientesAtualizados);
+    return true;
   };
   
   const logout = () => {
@@ -232,7 +257,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setClienteAtual,
       storeLocation: STORE_LOCATION,
       storeCode: STORE_CODE,
-      excluirCliente
+      excluirCliente,
+      atualizarSenhaCliente
     }}>
       {children}
     </AppContext.Provider>
