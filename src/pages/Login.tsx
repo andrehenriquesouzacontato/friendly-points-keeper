@@ -7,8 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Eye, EyeOff, UserIcon, Lock } from 'lucide-react';
+import { Eye, EyeOff, UserIcon, Lock, KeyRound } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CpfInput } from '@/components/CpfInput';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const Login: React.FC = () => {
   // Campos para login de cliente
@@ -23,21 +25,23 @@ const Login: React.FC = () => {
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [clienteEncontrado, setClienteEncontrado] = useState<any>(null);
+
+  // Estado para esqueci minha senha
+  const [modoEsqueciSenha, setModoEsqueciSenha] = useState(false);
+  const [cpfRecuperacao, setCpfRecuperacao] = useState('');
+  const [dialogRecuperacaoAberto, setDialogRecuperacaoAberto] = useState(false);
   
   const { login, getClienteByCpf, clientes } = useApp();
   const navigate = useNavigate();
   
-  const verificarClienteExistente = () => {
-    if (!clienteCpf) {
+  const verificarClienteExistente = (cpf: string) => {
+    if (!cpf) {
       toast.error('Digite o CPF para continuar');
       return null;
     }
     
-    // Verifica se o CPF contém apenas números
-    const cpfLimpo = clienteCpf.replace(/\D/g, '');
-    
     // Verifica se o cliente existe pelo CPF
-    const cliente = getClienteByCpf(cpfLimpo);
+    const cliente = getClienteByCpf(cpf);
     
     if (!cliente) {
       toast.error('CPF não cadastrado. Entre em contato com o administrador.');
@@ -50,7 +54,7 @@ const Login: React.FC = () => {
   const handleVerificarCliente = (e: React.FormEvent) => {
     e.preventDefault();
     
-    const cliente = verificarClienteExistente();
+    const cliente = verificarClienteExistente(clienteCpf);
     if (!cliente) return;
     
     // Se o cliente existe mas não tem senha, mostrar modo de criar senha
@@ -115,11 +119,8 @@ const Login: React.FC = () => {
       return;
     }
     
-    // Verifica se o CPF contém apenas números
-    const cpfLimpo = clienteCpf.replace(/\D/g, '');
-    
     try {
-      const success = await login(cpfLimpo, clienteSenha, 'cliente');
+      const success = await login(clienteCpf, clienteSenha, 'cliente');
       
       if (success) {
         navigate('/cliente');
@@ -131,6 +132,54 @@ const Login: React.FC = () => {
       toast.error('Ocorreu um erro ao tentar fazer login');
     }
   };
+
+  const handleRecuperarSenha = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const cliente = verificarClienteExistente(cpfRecuperacao);
+    if (!cliente) return;
+    
+    // Se o cliente existe, mostrar dialog para criar nova senha
+    setClienteEncontrado(cliente);
+    setDialogRecuperacaoAberto(true);
+  };
+
+  const handleResetarSenha = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (novaSenha.length < 4) {
+      toast.error('A senha deve ter pelo menos 4 caracteres');
+      return;
+    }
+    
+    if (novaSenha !== confirmarSenha) {
+      toast.error('As senhas não coincidem');
+      return;
+    }
+    
+    if (!clienteEncontrado) {
+      toast.error('Cliente não encontrado');
+      return;
+    }
+    
+    // Atualiza a senha do cliente
+    const clientesAtualizados = clientes.map(c => {
+      if (c.id === clienteEncontrado.id) {
+        return { ...c, senha: novaSenha };
+      }
+      return c;
+    });
+    
+    // Salva no localStorage
+    localStorage.setItem('clientes', JSON.stringify(clientesAtualizados));
+    
+    toast.success('Senha redefinida com sucesso! Faça login com sua nova senha.');
+    setDialogRecuperacaoAberto(false);
+    setModoEsqueciSenha(false);
+    setCpfRecuperacao('');
+    setNovaSenha('');
+    setConfirmarSenha('');
+  };
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-loyalty-pink via-loyalty-white to-loyalty-green flex items-center justify-center p-4">
@@ -141,7 +190,8 @@ const Login: React.FC = () => {
         </CardHeader>
         
         <CardContent>
-          {!modoCriarSenha ? (
+          {!modoCriarSenha && !modoEsqueciSenha ? (
+            // Modo Login
             <div className="space-y-4 mt-2">
               <div className="flex items-center justify-center mb-4">
                 <UserIcon className="text-loyalty-green mr-2" size={24} />
@@ -151,11 +201,10 @@ const Login: React.FC = () => {
               <form onSubmit={clienteSenha ? handleClienteLogin : handleVerificarCliente} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="cliente-cpf">CPF</Label>
-                  <Input
+                  <CpfInput
                     id="cliente-cpf"
-                    placeholder="Digite seu CPF (apenas números)"
                     value={clienteCpf}
-                    onChange={(e) => setClienteCpf(e.target.value)}
+                    onChange={(value) => setClienteCpf(value)}
                     required
                   />
                 </div>
@@ -188,13 +237,68 @@ const Login: React.FC = () => {
                 </Button>
               </form>
               
+              <div className="flex items-center justify-between">
+                <Button 
+                  variant="link" 
+                  className="text-xs text-gray-600 hover:text-gray-800 px-0"
+                  onClick={() => {
+                    setModoEsqueciSenha(true);
+                    setModoCriarSenha(false);
+                    setCpfRecuperacao('');
+                  }}
+                >
+                  Esqueci minha senha
+                </Button>
+              </div>
+              
               <Alert className="bg-gray-50 border-gray-200">
                 <AlertDescription className="text-sm">
                   Para o primeiro acesso, digite apenas seu CPF e clique em Continuar para cadastrar sua senha.
                 </AlertDescription>
               </Alert>
             </div>
+          ) : modoEsqueciSenha ? (
+            // Modo Esqueci Minha Senha
+            <div className="space-y-4 mt-2">
+              <div className="flex items-center justify-center mb-4">
+                <KeyRound className="text-loyalty-green mr-2" size={24} />
+                <h2 className="text-xl font-semibold">Recuperar Senha</h2>
+              </div>
+              
+              <form onSubmit={handleRecuperarSenha} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cpf-recuperacao">Digite seu CPF</Label>
+                  <CpfInput
+                    id="cpf-recuperacao"
+                    value={cpfRecuperacao}
+                    onChange={(value) => setCpfRecuperacao(value)}
+                    required
+                  />
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setModoEsqueciSenha(false);
+                      setCpfRecuperacao('');
+                    }}
+                  >
+                    Voltar
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    className="flex-1 bg-loyalty-green hover:bg-green-300 text-green-900"
+                  >
+                    Recuperar
+                  </Button>
+                </div>
+              </form>
+            </div>
           ) : (
+            // Modo Criar Senha (primeiro acesso)
             <div className="space-y-4 mt-2">
               <div className="flex items-center justify-center mb-4">
                 <Lock className="text-loyalty-green mr-2" size={24} />
@@ -274,8 +378,75 @@ const Login: React.FC = () => {
           </p>
         </CardFooter>
       </Card>
+
+      {/* Dialog para redefinição de senha */}
+      <Dialog open={dialogRecuperacaoAberto} onOpenChange={setDialogRecuperacaoAberto}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Redefinir Senha</DialogTitle>
+            <DialogDescription>
+              Digite sua nova senha para recuperar o acesso à sua conta.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleResetarSenha} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-nova-senha">Nova Senha</Label>
+              <div className="relative">
+                <Input
+                  id="reset-nova-senha"
+                  type={mostrarSenha ? "text" : "password"}
+                  placeholder="Digite sua nova senha"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                >
+                  {mostrarSenha ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="reset-confirmar-senha">Confirmar Senha</Label>
+              <Input
+                id="reset-confirmar-senha"
+                type={mostrarSenha ? "text" : "password"}
+                placeholder="Confirme sua nova senha"
+                value={confirmarSenha}
+                onChange={(e) => setConfirmarSenha(e.target.value)}
+                required
+              />
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline"
+                onClick={() => {
+                  setDialogRecuperacaoAberto(false);
+                  setNovaSenha('');
+                  setConfirmarSenha('');
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                className="bg-loyalty-green hover:bg-green-300 text-green-900"
+              >
+                Salvar Nova Senha
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
 
 export default Login;
+
